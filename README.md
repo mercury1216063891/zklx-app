@@ -1,4 +1,4 @@
-#  智课灵犀-Streamlit前端
+#  zklx-Streamlit前端
 
 
 ### 运行
