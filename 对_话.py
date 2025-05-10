@@ -16,10 +16,7 @@ st.set_page_config(
     page_title="智课灵犀-对话",
     layout="centered",
     page_icon=ICON,
-    menu_items={
-        'About'
-        : '湘潭大学计算机学院官网：https://jwxy.xtu.edu.cn/'
-    }
+    menu_items={"About": "湘潭大学计算机学院官网：https://jwxy.xtu.edu.cn/"},
 )
 
 with st.sidebar:
@@ -34,25 +31,41 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-st.sidebar.title('输入')
-option2 = st.sidebar.selectbox('方式', ['键盘', '语音'])
+st.sidebar.title("输入")
+option2 = st.sidebar.selectbox("方式", ["键盘", "语音"])
 
 # 添加滑动条
-st.sidebar.title('参数')
+st.sidebar.title("参数")
 with st.sidebar.expander("内容生成"):
     if "max_new_tokens" not in st.session_state:
         st.session_state["max_new_tokens"] = 800
         st.session_state["top_p"] = 0.9
         st.session_state["temperature"] = 0.2
         st.session_state["repetition_penalty"] = 1.1
-    parameter_1 = st.slider('max_new_tokens', min_value=50, max_value=1000,
-                            value=st.session_state.max_new_tokens,
-                            step=50)
-    parameter_2 = st.slider('top_p', min_value=0.5, max_value=0.95, value=st.session_state.top_p, step=0.01)
-    parameter_3 = st.slider('temperature', min_value=0.1, max_value=3.0, value=st.session_state.temperature,
-                            step=0.1)
-    parameter_4 = st.slider('repetition_penalty', min_value=0.5, max_value=5.0,
-                            value=st.session_state.repetition_penalty, step=0.1)
+    parameter_1 = st.slider(
+        "max_new_tokens",
+        min_value=50,
+        max_value=1000,
+        value=st.session_state.max_new_tokens,
+        step=50,
+    )
+    parameter_2 = st.slider(
+        "top_p", min_value=0.5, max_value=0.95, value=st.session_state.top_p, step=0.01
+    )
+    parameter_3 = st.slider(
+        "temperature",
+        min_value=0.1,
+        max_value=3.0,
+        value=st.session_state.temperature,
+        step=0.1,
+    )
+    parameter_4 = st.slider(
+        "repetition_penalty",
+        min_value=0.5,
+        max_value=5.0,
+        value=st.session_state.repetition_penalty,
+        step=0.1,
+    )
 
     st.session_state["max_new_tokens"] = parameter_1
     st.session_state["top_p"] = parameter_2
@@ -60,7 +73,9 @@ with st.sidebar.expander("内容生成"):
     st.session_state["repetition_penalty"] = parameter_4
 
 st.title("🪶 智课灵犀")
-st.caption("🌈 由湘潭大学计算机学院开发（声明：因校园网络波动，可能暂时无法连接到服务器，请稍后再试）")
+st.caption(
+    "🌈 由湘潭大学计算机学院开发（声明：因校园网络波动，可能暂时无法连接到服务器，请稍后再试）"
+)
 
 # 状态
 if "chat_type" not in st.session_state or st.session_state["chat_type"] != "chat":
@@ -79,28 +94,32 @@ if "voice_flag" not in st.session_state:
     st.session_state["voice_flag"] = ""
 
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "message": "你好，我是湘潭大学课程知识答疑小助手“智课灵犀”。"}]
+    st.session_state["messages"] = [
+        {
+            "role": "assistant",
+            "message": "你好，我是湘潭大学课程知识答疑小助手“智课灵犀”。",
+        }
+    ]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["message"])
 
 
 def send_message():
-    payload = json.dumps({
+    payload = {
         "chat_type": st.session_state.chat_type,
         "messages": st.session_state.messages,
         "max_new_tokens": st.session_state.max_new_tokens,
         "top_p": st.session_state.top_p,
         "temperature": st.session_state.temperature,
         "repetition_penalty": st.session_state.repetition_penalty,
-    })
+    }
     # print(type(payload), payload)
-    headers = {'Content-Type': 'application/json'}
 
     url = "http://localhost:5030/api-dev/qa/get_answer"
 
     try:
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, json=payload)
         response_data = response.json()
         if "response_text" in response_data:
             result = {"response_text": response_data["response_text"]}
@@ -117,13 +136,14 @@ def send_message():
         return {"response_text": "发生错误，请稍后再试"}
 
 
-
 if option2 == "键盘":
     if prompt := st.chat_input(placeholder="输入..."):
         st.session_state.messages.append({"role": "user", "message": prompt})
         st.chat_message("user").write(prompt)
         answer = send_message()
-        st.session_state.messages.append({"role": "assistant", "message": answer["response_text"]})
+        st.session_state.messages.append(
+            {"role": "assistant", "message": answer["response_text"]}
+        )
         st.chat_message("assistant").write(answer["response_text"])
         print(st.session_state)
 
@@ -134,7 +154,7 @@ elif option2 == "语音":
             "**输入：**",
             key="user_input_area",
             value=st.session_state.user_voice_value,
-            help="在此输入文本或通过语音输入。"
+            help="在此输入文本或通过语音输入。",
         )
         submitted = st.form_submit_button("确认提交")
 
@@ -143,7 +163,9 @@ elif option2 == "语音":
         st.session_state.messages.append({"role": "user", "message": prompt})
         st.chat_message("user").write(prompt)
         answer = send_message()
-        st.session_state.messages.append({"role": "assistant", "message": answer["response_text"]})
+        st.session_state.messages.append(
+            {"role": "assistant", "message": answer["response_text"]}
+        )
         st.chat_message("assistant").write(answer["response_text"])
 
         # print(st.session_state)
@@ -154,7 +176,7 @@ elif option2 == "语音":
     vocie_result = voice_toolkit()
     # vocie_result会保存最后一次结果
     if (
-            vocie_result and vocie_result["voice_result"]["flag"] == "interim"
+        vocie_result and vocie_result["voice_result"]["flag"] == "interim"
     ) or st.session_state["voice_flag"] == "interim":
         st.session_state["voice_flag"] = "interim"
         st.session_state["user_voice_value"] = vocie_result["voice_result"]["value"]

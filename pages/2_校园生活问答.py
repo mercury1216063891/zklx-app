@@ -32,8 +32,8 @@ with st.sidebar:
     )
 
 
-st.sidebar.title('输入')
-option2 = st.sidebar.selectbox('方式', ['键盘', '语音'])
+st.sidebar.title("输入")
+option2 = st.sidebar.selectbox("方式", ["键盘", "语音"])
 
 # 添加滑动条
 if "max_new_tokens" not in st.session_state:
@@ -45,18 +45,42 @@ if "n_results" not in st.session_state:
     st.session_state["n_results"] = 1
 if "image_count" not in st.session_state:
     st.session_state["image_count"] = 0
-st.sidebar.title('参数')
+st.sidebar.title("参数")
 with st.sidebar.expander("内容生成"):
-    parameter_5 = st.slider('n_results', min_value=1, max_value=5, value=st.session_state.n_results, step=1)
-    parameter_1 = st.slider('max_new_tokens', min_value=50, max_value=1000,
-                            value=st.session_state.max_new_tokens, step=50)
-    parameter_2 = st.slider('top_p', min_value=0.5, max_value=0.95, value=st.session_state.top_p, step=0.01)
-    parameter_3 = st.slider('temperature', min_value=0.1, max_value=5.0, value=st.session_state.temperature,
-                            step=0.1)
-    parameter_4 = st.slider('repetition_penalty', min_value=0.5, max_value=5.0,
-                            value=st.session_state.repetition_penalty, step=0.1)
-    parameter_6 = st.slider('image_count', min_value=0, max_value=5,
-                            value=st.session_state.image_count, step=1)
+    parameter_5 = st.slider(
+        "n_results", min_value=1, max_value=5, value=st.session_state.n_results, step=1
+    )
+    parameter_1 = st.slider(
+        "max_new_tokens",
+        min_value=50,
+        max_value=1000,
+        value=st.session_state.max_new_tokens,
+        step=50,
+    )
+    parameter_2 = st.slider(
+        "top_p", min_value=0.5, max_value=0.95, value=st.session_state.top_p, step=0.01
+    )
+    parameter_3 = st.slider(
+        "temperature",
+        min_value=0.1,
+        max_value=5.0,
+        value=st.session_state.temperature,
+        step=0.1,
+    )
+    parameter_4 = st.slider(
+        "repetition_penalty",
+        min_value=0.5,
+        max_value=5.0,
+        value=st.session_state.repetition_penalty,
+        step=0.1,
+    )
+    parameter_6 = st.slider(
+        "image_count",
+        min_value=0,
+        max_value=5,
+        value=st.session_state.image_count,
+        step=1,
+    )
 
     st.session_state["n_results"] = parameter_5
     st.session_state["max_new_tokens"] = parameter_1
@@ -71,7 +95,10 @@ st.caption("🌈 基于校园生活知识库来进行问答")
 
 
 # 状态
-if "chat_type" not in st.session_state or st.session_state["chat_type"] != "chat_rag_Campus_Knowledge":
+if (
+    "chat_type" not in st.session_state
+    or st.session_state["chat_type"] != "chat_rag_Campus_Knowledge"
+):
     st.session_state["chat_type"] = "chat_rag_Campus_Knowledge"
 
 if "is_recording" not in st.session_state:
@@ -87,7 +114,12 @@ if "voice_flag" not in st.session_state:
     st.session_state["voice_flag"] = ""
 
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "message": "你好，我是湘潭大学课程知识答疑小助手“智课灵犀”。"}]
+    st.session_state["messages"] = [
+        {
+            "role": "assistant",
+            "message": "你好，我是湘潭大学课程知识答疑小助手“智课灵犀”。",
+        }
+    ]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["message"])
@@ -104,7 +136,7 @@ def base64_to_image(base64_str):
 
 
 def send_message():
-    payload = json.dumps({
+    payload = {
         "chat_type": st.session_state.chat_type,
         "messages": st.session_state.messages,
         "max_new_tokens": st.session_state.max_new_tokens,
@@ -113,14 +145,13 @@ def send_message():
         "repetition_penalty": st.session_state.repetition_penalty,
         "n_results": st.session_state.n_results,
         "image_count": st.session_state.image_count,
-    })
+    }
     # print(type(payload), payload)
-    headers = {'Content-Type': 'application/json'}
 
     url = "http://localhost:5030/api-dev/qa/get_answer"
 
     try:
-        response = requests.post(url, data=payload, headers=headers)
+        response = requests.post(url, json=payload)
         response_data = response.json()
         if "response_text" in response_data:
             result = {"response_text": response_data["response_text"]}
@@ -144,19 +175,27 @@ if option2 == "键盘":
         st.session_state.messages.append({"role": "user", "message": prompt})
         st.chat_message("user").write(prompt)
         answer = send_message()
-        if isinstance(answer, dict) and "response_text" in answer and "response_image" in answer:
-            st.session_state.messages.append({"role": "assistant", "message": answer["response_text"]})
+        if (
+            isinstance(answer, dict)
+            and "response_text" in answer
+            and "response_image" in answer
+        ):
+            st.session_state.messages.append(
+                {"role": "assistant", "message": answer["response_text"]}
+            )
             st.chat_message("assistant").write(answer["response_text"])
 
             # 遍历 response_image 列表，解码每个图像
             for image_dict in answer["response_image"]:
-                image_base64 = image_dict['image']
+                image_base64 = image_dict["image"]
                 img = base64_to_image(image_base64)
                 if img is not None:
                     st.image(img)
 
         else:
-            st.session_state.messages.append({"role": "assistant", "message": answer["response_text"]})
+            st.session_state.messages.append(
+                {"role": "assistant", "message": answer["response_text"]}
+            )
             st.chat_message("assistant").write(answer["response_text"])
         print(st.session_state)
 
@@ -167,7 +206,7 @@ elif option2 == "语音":
             "**输入：**",
             key="user_input_area",
             value=st.session_state.user_voice_value,
-            help="在此输入文本或通过语音输入。"
+            help="在此输入文本或通过语音输入。",
         )
         submitted = st.form_submit_button("确认提交")
 
@@ -189,7 +228,9 @@ elif option2 == "语音":
         # else:
         #     st.session_state.messages.append({"role": "assistant", "message": answer["response_text"]})
         #     st.chat_message("assistant").write(answer["response_text"])
-        st.session_state.messages.append({"role": "assistant", "message": answer["response_text"]})
+        st.session_state.messages.append(
+            {"role": "assistant", "message": answer["response_text"]}
+        )
         st.chat_message("assistant").write(answer["response_text"])
         # print(st.session_state)
 
@@ -199,12 +240,10 @@ elif option2 == "语音":
     vocie_result = voice_toolkit()
     # vocie_result会保存最后一次结果
     if (
-            vocie_result and vocie_result["voice_result"]["flag"] == "interim"
+        vocie_result and vocie_result["voice_result"]["flag"] == "interim"
     ) or st.session_state["voice_flag"] == "interim":
         st.session_state["voice_flag"] = "interim"
         st.session_state["user_voice_value"] = vocie_result["voice_result"]["value"]
         if vocie_result["voice_result"]["flag"] == "final":
             st.session_state["voice_flag"] = "final"
             st.rerun()
-
-
